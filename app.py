@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Petrol Cost Calculator", page_icon="⛽")
+st.set_page_config(page_title="Jaswanth's Petrol Cost Calculator", page_icon="⛽")
 
 st.title("⛽ Petrol Cost Calculator")
 
