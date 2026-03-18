@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Jaswanth's Petrol Cost Calculator", page_icon="⛽")
 
-st.title("⛽ Petrol Cost Calculator")
+st.title("⛽ Jaswanth's Petrol Cost Calculator")
 
 # Sidebar choice
 choice = st.sidebar.selectbox(
