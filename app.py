@@ -1,48 +1,122 @@
 import streamlit as st
+import pandas as pd
 
-st.set_page_config(page_title="Jaswanth's Petrol Cost Calculator", page_icon="⛽")
-
-st.title("⛽ Jaswanth's Petrol Cost Calculator")
-
-# Sidebar choice
-choice = st.sidebar.selectbox(
-    "Choose Calculation Type",
-    ["Monthly Petrol Cost", "Trip Petrol Cost"]
+st.set_page_config(
+    page_title="Petrol Cost Calculator",
+    page_icon="⛽",
+    layout="wide"
 )
 
-# ------------------ Monthly Petrol ------------------
-if choice == "Monthly Petrol Cost":
-    st.header("Monthly Petrol Cost Calculator")
+# ---------- Custom CSS ----------
+st.markdown("""
+    <style>
+        .main {
+            background-color: #0f172a;
+        }
+        .stApp {
+            background: linear-gradient(to right, #0f172a, #1e293b);
+            color: white;
+        }
+        .card {
+            padding: 20px;
+            border-radius: 15px;
+            background-color: #1e293b;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-    travel = st.number_input("Enter your one-side daily travel (km)", min_value=1)
-    min_mileage = st.number_input("Enter minimum mileage (km/l)", min_value=1)
-    max_mileage = st.number_input("Enter maximum mileage (km/l)", min_value=int(min_mileage))
-    days = st.number_input("Enter working days per month", min_value=1)
-    petrol_price = st.number_input("Enter petrol price (INR)", min_value=1.0)
+# ---------- Title ----------
+st.title("⛽ Petrol Cost Dashboard")
+st.caption("Smart way to estimate your fuel expenses")
 
-    if st.button("Calculate Monthly Cost"):
-        st.subheader("Results:")
+# ---------- Sidebar ----------
+choice = st.sidebar.radio(
+    "Select Calculation",
+    ["Monthly Cost", "Trip Cost"]
+)
+
+# ---------- Monthly ----------
+if choice == "Monthly Cost":
+    st.markdown("## 📅 Monthly Petrol Cost")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        travel = st.number_input("One-side daily travel (km)", min_value=1)
+        days = st.number_input("Working days/month", min_value=1)
+
+    with col2:
+        min_mileage = st.number_input("Min mileage (km/l)", min_value=1)
+        max_mileage = st.number_input("Max mileage (km/l)", min_value=int(min_mileage))
+        petrol_price = st.number_input("Petrol price (₹)", value=107.0)
+
+    if st.button("Calculate 🚀"):
+        data = []
         for mileage in range(int(min_mileage), int(max_mileage) + 1):
             cost = (((travel * 2) * days) / mileage) * petrol_price
-            st.write(f"🚴 Mileage: {mileage} km/l")
-            st.success(f"Monthly Petrol Cost: ₹ {cost:.2f}")
-            st.write("---")
+            data.append({"Mileage": mileage, "Cost": cost})
 
-# ------------------ Trip Petrol ------------------
-elif choice == "Trip Petrol Cost":
-    st.header("Trip Petrol Cost Calculator")
+        df = pd.DataFrame(data)
 
-    dist = st.number_input("Enter one-side trip distance (km)", min_value=1)
-    min_mileage = st.number_input("Enter minimum mileage (km/l)", min_value=1, key="trip_min")
-    max_mileage = st.number_input("Enter maximum mileage (km/l)", min_value=int(min_mileage), key="trip_max")
-    petrol_price = st.number_input("Enter petrol price (INR)", min_value=1.0, value=107.46)
+        # ---------- Metrics ----------
+        st.markdown("### 💡 Summary")
+        col1, col2, col3 = st.columns(3)
 
-    if st.button("Calculate Trip Cost"):
+        col1.metric("Min Cost", f"₹ {df['Cost'].min():.2f}")
+        col2.metric("Max Cost", f"₹ {df['Cost'].max():.2f}")
+        col3.metric("Avg Cost", f"₹ {df['Cost'].mean():.2f}")
+
+        # ---------- Chart ----------
+        st.markdown("### 📊 Cost vs Mileage")
+        st.line_chart(df.set_index("Mileage"))
+
+        # ---------- Table ----------
+        with st.expander("📋 Detailed Breakdown"):
+            st.dataframe(df, use_container_width=True)
+
+# ---------- Trip ----------
+elif choice == "Trip Cost":
+    st.markdown("## 🛣️ Trip Petrol Cost")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        dist = st.number_input("One-side distance (km)", min_value=1)
+
+    with col2:
+        min_mileage = st.number_input("Min mileage (km/l)", min_value=1, key="t1")
+        max_mileage = st.number_input("Max mileage (km/l)", min_value=int(min_mileage), key="t2")
+        petrol_price = st.number_input("Petrol price (₹)", value=107.0, key="t3")
+
+    if st.button("Calculate Trip 🚀"):
         total_dist = dist * 2
-        st.subheader("Results:")
+        data = []
+
         for mileage in range(int(min_mileage), int(max_mileage) + 1):
-            total_petrol = total_dist / mileage
-            cost = total_petrol * petrol_price
-            st.write(f"🚴 Mileage: {mileage} km/l")
-            st.success(f"Trip Petrol Cost: ₹ {cost:.2f}")
-            st.write("---")
+            petrol = total_dist / mileage
+            cost = petrol * petrol_price
+            data.append({"Mileage": mileage, "Cost": cost})
+
+        df = pd.DataFrame(data)
+
+        # ---------- Metrics ----------
+        st.markdown("### 💡 Summary")
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("Min Cost", f"₹ {df['Cost'].min():.2f}")
+        col2.metric("Max Cost", f"₹ {df['Cost'].max():.2f}")
+        col3.metric("Avg Cost", f"₹ {df['Cost'].mean():.2f}")
+
+        # ---------- Chart ----------
+        st.markdown("### 📊 Cost vs Mileage")
+        st.line_chart(df.set_index("Mileage"))
+
+        # ---------- Table ----------
+        with st.expander("📋 Detailed Breakdown"):
+            st.dataframe(df, use_container_width=True)
+
+# ---------- Footer ----------
+st.markdown("---")
+st.caption("Made with ❤️ using Streamlit")
